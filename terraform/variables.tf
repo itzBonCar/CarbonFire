@@ -39,20 +39,9 @@ variable "key_name" {
   default     = "canbor-kp"
 }
 
-variable "ubuntu_ami_owner" {
-  type    = string
-  default = "099720109477"
-}
-
-variable "ubuntu_ami_name_filter" {
-  type    = string
-  default = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
-}
-
 variable "ubuntu_ami_id" {
-  description = "Optional: explicit AMI id to use (overrides name filter when set)."
+  description = "Explicit AMI id to use for instances."
   type        = string
-  default     = ""
 }
 
 variable "alb_ingress_cidr" {
@@ -109,21 +98,6 @@ variable "app_health_check_path" {
 variable "redis_instance_type" {
   type    = string
   default = "t3.small"
-}
-
-variable "redis_asg_min" {
-  type    = number
-  default = 3
-}
-
-variable "redis_asg_max" {
-  type    = number
-  default = 3
-}
-
-variable "redis_asg_desired" {
-  type    = number
-  default = 3
 }
 
 variable "redis_port" {

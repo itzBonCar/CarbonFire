@@ -6,16 +6,6 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = [var.ubuntu_ami_owner]
-
-  filter {
-    name   = "name"
-    values = [var.ubuntu_ami_name_filter]
-  }
-}
-
 locals {
   common_tags = merge(var.tags, {
     Project = var.project_name
@@ -89,7 +79,7 @@ module "compute" {
 
   project_name              = var.project_name
   common_tags               = local.common_tags
-  ubuntu_ami_id             = var.ubuntu_ami_id != "" ? var.ubuntu_ami_id : data.aws_ami.ubuntu.id
+  ubuntu_ami_id             = var.ubuntu_ami_id
   key_name                  = var.key_name
   bastion_instance_type     = var.bastion_instance_type
   public_subnet_ids         = module.network.public_subnet_ids
