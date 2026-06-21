@@ -1,0 +1,8 @@
+# Ignore Terraform local plugin downloads and working directories
+terraform/.terraform/
+
+# Ignore local editor and OS files
+*.swp
+*.swo
+*.tmp
+.DS_Store
