@@ -3,6 +3,12 @@ variable "region" {
   default = "us-east-1"
 }
 
+variable "azs" {
+  description = "List of availability zones to use for subnets (fixed order)."
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b"]
+}
+
 variable "project_name" {
   type    = string
   default = "carbonfire"
@@ -40,7 +46,7 @@ variable "key_name" {
 }
 
 variable "ubuntu_ami_id" {
-  description = "Explicit AMI id to use for instances."
+  description = "AMI id to use for instances."
   type        = string
 }
 

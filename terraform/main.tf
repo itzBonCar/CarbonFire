@@ -2,10 +2,6 @@ provider "aws" {
   region = var.region
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 locals {
   common_tags = merge(var.tags, {
     Project = var.project_name
@@ -14,7 +10,7 @@ locals {
   public_subnets = {
     for idx, cidr in var.public_subnets : tostring(idx) => {
       cidr = cidr
-      az   = data.aws_availability_zones.available.names[idx]
+      az   = var.azs[idx]
       name = "${var.project_name}-public-${idx + 1}"
     }
   }
@@ -22,7 +18,7 @@ locals {
   app_subnets = {
     for idx, cidr in var.app_subnets : tostring(idx) => {
       cidr = cidr
-      az   = data.aws_availability_zones.available.names[idx]
+      az   = var.azs[idx]
       name = "${var.project_name}-app-${idx + 1}"
     }
   }
@@ -30,7 +26,7 @@ locals {
   middleware_subnets = {
     for idx, cidr in var.middleware_subnets : tostring(idx) => {
       cidr = cidr
-      az   = data.aws_availability_zones.available.names[idx]
+      az   = var.azs[idx]
       name = "${var.project_name}-middleware-${idx + 1}"
     }
   }
@@ -92,9 +88,6 @@ module "compute" {
   app_security_group_id     = module.security.app_security_group_id
   app_target_group_arn      = module.alb.app_target_group_arn
   redis_instance_type       = var.redis_instance_type
-  redis_asg_min             = var.redis_asg_min
-  redis_asg_max             = var.redis_asg_max
-  redis_asg_desired         = var.redis_asg_desired
   middleware_subnet_ids     = module.network.middleware_subnet_ids
   redis_security_group_id   = module.security.redis_security_group_id
 }
