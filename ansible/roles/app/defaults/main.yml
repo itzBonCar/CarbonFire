@@ -1,0 +1,11 @@
+app_packages:
+  - docker.io
+app_container_name: carbonfire-app
+app_image_name: carbonfire-demo-app
+app_container_port: 3000
+app_host_port: 80
+app_source_dir: /opt/carbonfire-app
+app_local_source_dir: "{{ playbook_dir }}/../app"
+redis_sentinel_name: mymaster
+redis_sentinel_port: 26379
+redis_sentinel_endpoints: []

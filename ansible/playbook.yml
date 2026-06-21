@@ -1,0 +1,26 @@
+- hosts: role_redis
+  become: true
+  vars:
+    redis_master_inventory_host: "{{ groups['role_redis'] | sort | first }}"
+    redis_master_host: "{{ hostvars[redis_master_inventory_host].private_ip_address }}"
+    redis_is_master: "{{ inventory_hostname == redis_master_inventory_host }}"
+    redis_sentinel_endpoints: >-
+      {{ (groups['role_redis'] | sort)
+         | map('extract', hostvars)
+         | map(attribute='private_ip_address')
+         | map('regex_replace', '(.*)', '\1:' ~ redis_sentinel_port)
+         | list }}
+  roles:
+    - redis
+
+- hosts: role_app
+  become: true
+  vars:
+    redis_sentinel_endpoints: >-
+      {{ (groups['role_redis'] | sort)
+         | map('extract', hostvars)
+         | map(attribute='private_ip_address')
+         | map('regex_replace', '(.*)', '\1:' ~ redis_sentinel_port)
+         | list }}
+  roles:
+    - app

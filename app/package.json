@@ -1,0 +1,15 @@
+{
+  "name": "carbonfire-app",
+  "version": "1.0.0",
+  "description": "Redis demo app with caching, leaderboard, session store, and rate limiting",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ioredis": "^5.3.2",
+    "express-session": "^1.17.3",
+    "connect-redis": "^7.1.0"
+  }
+}

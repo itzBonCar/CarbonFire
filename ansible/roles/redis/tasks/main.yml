@@ -1,0 +1,78 @@
+
+- name: Apt update
+  apt:
+    update_cache: yes
+
+- name: Install redis packages
+  apt:
+    name: "{{ redis_packages }}"
+    state: present
+
+- name: Configure redis to listen on bind address
+  lineinfile:
+    path: "{{ redis_conf_path }}"
+    regexp: '^bind\s+'
+    line: "bind {{ redis_bind }}"
+    backup: yes
+  notify: Restart redis
+
+- name: Configure protected-mode
+  lineinfile:
+    path: "{{ redis_conf_path }}"
+    regexp: '^protected-mode\s+'
+    line: "protected-mode {{ redis_protected_mode }}"
+    backup: yes
+  notify: Restart redis
+
+- name: Configure redis port
+  lineinfile:
+    path: "{{ redis_conf_path }}"
+    regexp: '^port\s+'
+    line: "port {{ redis_port }}"
+    backup: yes
+  notify: Restart redis
+
+- name: Configure replicaof for non-master redis nodes
+  lineinfile:
+    path: "{{ redis_conf_path }}"
+    regexp: '^replicaof\s+'
+    line: "replicaof {{ redis_master_host }} {{ redis_port }}"
+    backup: yes
+  when: not redis_is_master
+  notify: Restart redis
+
+- name: Remove replicaof line for master redis node
+  lineinfile:
+    path: "{{ redis_conf_path }}"
+    regexp: '^replicaof\s+'
+    state: absent
+    backup: yes
+  when: redis_is_master
+  notify: Restart redis
+
+- name: Create sentinel config directory
+  file:
+    path: "{{ redis_sentinel_conf_path | dirname }}"
+    state: directory
+    mode: '0755'
+
+- name: Create sentinel configuration using template
+  template:
+    src: sentinel.conf.j2
+    dest: "{{ redis_sentinel_conf_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart redis sentinel
+
+- name: Start redis service
+  service:
+    name: "{{ redis_service_name }}"
+    state: started
+    enabled: yes
+
+- name: Start redis sentinel service
+  service:
+    name: "{{ redis_sentinel_service_name }}"
+    state: started
+    enabled: yes
