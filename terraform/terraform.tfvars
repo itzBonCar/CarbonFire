@@ -1,7 +1,7 @@
 region       = "us-east-1"
-state_bucket = "your-terraform-state-bucket-unique"
+state_bucket = "carbonfire-terraform-state-bucket-unique"
 project_name = "carbonfire"
-key_name     = null
+key_name     = "canbor-kp"
 
 tags = {
   Environment = "demo"
