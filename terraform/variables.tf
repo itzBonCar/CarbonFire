@@ -36,7 +36,7 @@ variable "state_bucket" {
 variable "key_name" {
   description = "Existing EC2 key pair name used for SSH through the bastion host."
   type        = string
-  default     = null
+  default     = "canbor-kp"
 }
 
 variable "ubuntu_ami_owner" {
@@ -47,6 +47,12 @@ variable "ubuntu_ami_owner" {
 variable "ubuntu_ami_name_filter" {
   type    = string
   default = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+}
+
+variable "ubuntu_ami_id" {
+  description = "Optional: explicit AMI id to use (overrides name filter when set)."
+  type        = string
+  default     = ""
 }
 
 variable "alb_ingress_cidr" {

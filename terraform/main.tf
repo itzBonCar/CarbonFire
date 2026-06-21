@@ -89,7 +89,7 @@ module "compute" {
 
   project_name              = var.project_name
   common_tags               = local.common_tags
-  ubuntu_ami_id             = data.aws_ami.ubuntu.id
+  ubuntu_ami_id             = var.ubuntu_ami_id != "" ? var.ubuntu_ami_id : data.aws_ami.ubuntu.id
   key_name                  = var.key_name
   bastion_instance_type     = var.bastion_instance_type
   public_subnet_ids         = module.network.public_subnet_ids
