@@ -12,16 +12,81 @@ resource "aws_instance" "bastion" {
   })
 }
 
+resource "aws_iam_role" "app" {
+  name = "${var.project_name}-app-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = var.common_tags
+}
+
+resource "aws_iam_role_policy" "app" {
+  name = "${var.project_name}-app-policy"
+  role = aws_iam_role.app.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.state_bucket}",
+          "arn:aws:s3:::${var.state_bucket}/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "app" {
+  name = "${var.project_name}-app-instance-profile"
+  role = aws_iam_role.app.name
+
+  tags = var.common_tags
+}
+
 resource "aws_launch_template" "app" {
   name_prefix   = "${var.project_name}-app-"
   image_id      = var.ubuntu_ami_id
   instance_type = var.app_instance_type
   key_name      = var.key_name
 
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.app.arn
+  }
+
   network_interfaces {
     associate_public_ip_address = false
     security_groups             = [var.app_security_group_id]
   }
+
+  user_data = base64encode(templatefile("${path.module}/templates/user_data.sh.tpl", {
+    state_bucket = var.state_bucket
+    region       = var.region
+    project_name = var.project_name
+  }))
 
   tag_specifications {
     resource_type = "instance"

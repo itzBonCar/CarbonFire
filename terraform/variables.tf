@@ -4,7 +4,7 @@ variable "region" {
 }
 
 variable "azs" {
-  description = "List of availability zones to use for subnets (fixed order)."
+  description = "List of availability zones to use for subnets."
   type        = list(string)
   default     = ["us-east-1a", "us-east-1b"]
 }

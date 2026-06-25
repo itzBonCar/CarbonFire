@@ -1,5 +1,6 @@
 redis_packages:
   - redis-server
+  - redis-sentinel
 redis_conf_path: /etc/redis/redis.conf
 redis_bind: '0.0.0.0'
 redis_protected_mode: 'no'

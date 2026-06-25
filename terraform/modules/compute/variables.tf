@@ -58,18 +58,6 @@ variable "redis_instance_type" {
   type = string
 }
 
-variable "redis_asg_min" {
-  type = number
-}
-
-variable "redis_asg_max" {
-  type = number
-}
-
-variable "redis_asg_desired" {
-  type = number
-}
-
 variable "middleware_subnet_ids" {
   type = map(string)
 }
@@ -77,3 +65,14 @@ variable "middleware_subnet_ids" {
 variable "redis_security_group_id" {
   type = string
 }
+
+variable "state_bucket" {
+  type        = string
+  description = "The S3 bucket where application code bundle is stored."
+}
+
+variable "region" {
+  type        = string
+  description = "AWS Region to run the dynamic sentinel discovery."
+}
+

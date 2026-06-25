@@ -90,4 +90,6 @@ module "compute" {
   redis_instance_type       = var.redis_instance_type
   middleware_subnet_ids     = module.network.middleware_subnet_ids
   redis_security_group_id   = module.security.redis_security_group_id
+  state_bucket              = var.state_bucket
+  region                    = var.region
 }

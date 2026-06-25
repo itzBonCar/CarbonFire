@@ -6,3 +6,7 @@ terraform/.terraform/
 *.swo
 *.tmp
 .DS_Store
+
+# Ignore node application modules and logs
+node_modules/
+npm-debug.log

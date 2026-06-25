@@ -6,10 +6,6 @@ output "app_asg" {
   value = module.compute.app_asg_name
 }
 
-output "redis_asg" {
-  value = module.compute.redis_asg_name
-}
-
 output "bastion_public_ip" {
   value = module.compute.bastion_public_ip
 }

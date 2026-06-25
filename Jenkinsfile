@@ -3,8 +3,7 @@ pipeline {
   environment {
     AWS_REGION = 'us-east-1'
     TF_STATE_BUCKET = 'carbonfire-terraform-state-bucket-unique'
-    EC2_KEY_NAME = 'carbonfire-key'
-    ANSIBLE_PRIVATE_KEY_FILE = "${WORKSPACE}/carbonfire-key.pem"
+    EC2_KEY_NAME = 'canbor-kp'
     TF_DIR = 'terraform'
     ANSIBLE_DIR = 'ansible'
     ANSIBLE_LOCAL_TEMP = "${WORKSPACE}/.ansible/tmp"
@@ -18,6 +17,18 @@ pipeline {
       steps {
         withAWS(credentials: 'canberry-aws', region: "${AWS_REGION}") {
           sh 'bash scripts/bootstrap_backend.sh "${TF_STATE_BUCKET}" "${AWS_REGION}"'
+        }
+      }
+    }
+    stage('Upload App Bundle to S3') {
+      steps {
+        withAWS(credentials: 'canberry-aws', region: "${AWS_REGION}") {
+          sh '''
+            set -eu
+            tar -czf app.tar.gz -C app .
+            aws s3 cp app.tar.gz "s3://${TF_STATE_BUCKET}/app-bundle/app.tar.gz"
+            rm app.tar.gz
+          '''
         }
       }
     }
@@ -48,16 +59,18 @@ pipeline {
     stage('Run Ansible') {
       steps {
         withAWS(credentials: 'canberry-aws', region: "${AWS_REGION}") {
-          dir("${ANSIBLE_DIR}") {
-            sh 'ansible-galaxy collection install amazon.aws community.docker || true'
-            sh '''
-              set -eu
-              BASTION_PUBLIC_IP="$(terraform -chdir="../${TF_DIR}" output -raw bastion_public_ip)"
-              AWS_REGION="${AWS_REGION}" \
-              BASTION_PUBLIC_IP="${BASTION_PUBLIC_IP}" \
-              ANSIBLE_PRIVATE_KEY_FILE="${ANSIBLE_PRIVATE_KEY_FILE}" \
-              ansible-playbook -i inventory/aws_ec2.yml playbook.yml -vv
-            '''
+          withCredentials([sshUserPrivateKey(credentialsId: 'canbor-ssh-key', keyFileVariable: 'ANSIBLE_KEY')]) {
+            dir("${ANSIBLE_DIR}") {
+              sh 'ansible-galaxy collection install amazon.aws community.docker || true'
+              sh '''
+                set -eu
+                BASTION_PUBLIC_IP="$(terraform -chdir="../${TF_DIR}" output -raw bastion_public_ip)"
+                AWS_REGION="${AWS_REGION}" \
+                BASTION_PUBLIC_IP="${BASTION_PUBLIC_IP}" \
+                ANSIBLE_PRIVATE_KEY_FILE="${ANSIBLE_KEY}" \
+                ansible-playbook -i inventory/aws_ec2.yml playbook.yml -vv
+              '''
+            }
           }
         }
       }

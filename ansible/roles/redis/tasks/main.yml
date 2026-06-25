@@ -32,13 +32,20 @@
     backup: yes
   notify: Restart redis
 
+- name: Check if sentinel configuration exists
+  stat:
+    path: "{{ redis_sentinel_conf_path }}"
+  register: sentinel_conf_stat
+
 - name: Configure replicaof for non-master redis nodes
   lineinfile:
     path: "{{ redis_conf_path }}"
     regexp: '^replicaof\s+'
     line: "replicaof {{ redis_master_host }} {{ redis_port }}"
     backup: yes
-  when: not redis_is_master
+  when:
+    - not redis_is_master
+    - not sentinel_conf_stat.stat.exists
   notify: Restart redis
 
 - name: Remove replicaof line for master redis node
@@ -47,7 +54,9 @@
     regexp: '^replicaof\s+'
     state: absent
     backup: yes
-  when: redis_is_master
+  when:
+    - redis_is_master
+    - not sentinel_conf_stat.stat.exists
   notify: Restart redis
 
 - name: Create sentinel config directory
@@ -60,9 +69,10 @@
   template:
     src: sentinel.conf.j2
     dest: "{{ redis_sentinel_conf_path }}"
-    owner: root
-    group: root
-    mode: '0644'
+    owner: redis
+    group: redis
+    mode: '0640'
+  when: not sentinel_conf_stat.stat.exists
   notify: Restart redis sentinel
 
 - name: Start redis service
