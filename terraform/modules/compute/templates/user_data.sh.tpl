@@ -45,6 +45,9 @@ done
 
 echo "Found Sentinels: $SENTINELS"
 
+# Pull the latest image
+docker pull itzboncar/carbonfire:latest
+
 # Run app container
 docker run -d \
   --name carbonfire-app \

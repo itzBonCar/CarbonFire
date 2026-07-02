@@ -1,7 +1,7 @@
 const express = require('express');
 const Redis = require('ioredis');
 const session = require('express-session');
-const { RedisStore } = require('connect-redis');
+const RedisStore = require('connect-redis').default;
 
 const sentinelEndpoints = (process.env.REDIS_SENTINELS || '127.0.0.1:26379')
   .split(',')
