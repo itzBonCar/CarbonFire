@@ -6,21 +6,13 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/null) 2>&1
 
 echo "Starting User Data script..."
 
-# Update apt and install dependencies
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y docker.io unzip awscli
 
-# Start Docker service
 systemctl start docker
 systemctl enable docker
 
-# Download app package from S3
-mkdir -p /opt/carbonfire-app
-aws s3 cp s3://${state_bucket}/app-bundle/app.tar.gz /tmp/app.tar.gz
-tar -xzf /tmp/app.tar.gz -C /opt/carbonfire-app
-
-# Dynamic Sentinel Discovery
 echo "Discovering Redis Sentinel endpoints..."
 REDIS_IPs=""
 for i in {1..30}; do
@@ -41,7 +33,7 @@ if [ -z "$REDIS_IPs" ]; then
   exit 1
 fi
 
-# Format Sentinel endpoints as host1:26379,host2:26379,...
+# Format Sentinel endpoints as host1:26379
 SENTINELS=""
 for ip in $REDIS_IPs; do
   if [ -z "$SENTINELS" ]; then
@@ -53,11 +45,7 @@ done
 
 echo "Found Sentinels: $SENTINELS"
 
-# Build the application image
-cd /opt/carbonfire-app
-docker build -t carbonfire-demo-app .
-
-# Run the Node.js application container
+# Run app container
 docker run -d \
   --name carbonfire-app \
   --restart always \
@@ -65,6 +53,6 @@ docker run -d \
   -e REDIS_SENTINELS="$SENTINELS" \
   -e REDIS_MASTER_NAME="mymaster" \
   -e PORT="3000" \
-  carbonfire-demo-app
+  itzboncar/carbonfire:latest
 
 echo "User Data script finished successfully!"

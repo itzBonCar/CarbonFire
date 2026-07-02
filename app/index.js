@@ -29,7 +29,7 @@ app.use(session({
 
 app.get('/', (req, res) => {
   res.json({
-    message: 'CarbonFire Redis HA demo',
+    message: 'CarbonFire Redis demo',
     endpoints: ['/health', '/cache', '/leaderboard', '/session', '/rate'],
   });
 });

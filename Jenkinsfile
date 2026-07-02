@@ -8,6 +8,10 @@ pipeline {
     ANSIBLE_DIR = 'ansible'
     ANSIBLE_LOCAL_TEMP = "${WORKSPACE}/.ansible/tmp"
     ANSIBLE_REMOTE_TEMP = "/tmp/.ansible/tmp"
+    TF_VAR_region = "${AWS_REGION}"
+    TF_VAR_state_bucket = "${TF_STATE_BUCKET}"
+    TF_VAR_key_name = "${EC2_KEY_NAME}"
+    TF_CLI_ARGS_init = "-input=false -backend-config=\"bucket=${TF_STATE_BUCKET}\" -backend-config=\"region=${AWS_REGION}\""
   }
   stages {
     stage('Checkout') {
@@ -20,14 +24,14 @@ pipeline {
         }
       }
     }
-    stage('Upload App Bundle to S3') {
+    stage('Build and Push Docker Image') {
       steps {
-        withAWS(credentials: 'canberry-aws', region: "${AWS_REGION}") {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           sh '''
-            set -eu
-            tar -czf app.tar.gz -C app .
-            aws s3 cp app.tar.gz "s3://${TF_STATE_BUCKET}/app-bundle/app.tar.gz"
-            rm app.tar.gz
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            docker build -t itzboncar/carbonfire:${BUILD_NUMBER} -t itzboncar/carbonfire:latest app/
+            docker push itzboncar/carbonfire:${BUILD_NUMBER}
+            docker push itzboncar/carbonfire:latest
           '''
         }
       }
@@ -36,8 +40,8 @@ pipeline {
       steps {
         withAWS(credentials: 'canberry-aws', region: "${AWS_REGION}") {
           dir("${TF_DIR}") {
-            sh 'terraform init -input=false -reconfigure -backend-config="bucket=${TF_STATE_BUCKET}" -backend-config="region=${AWS_REGION}"'
-            sh 'terraform apply -auto-approve -var="state_bucket=${TF_STATE_BUCKET}" -var="region=${AWS_REGION}" -var="key_name=${EC2_KEY_NAME}"'
+            sh 'terraform init -reconfigure'
+            sh 'terraform apply -auto-approve'
           }
         }
       }

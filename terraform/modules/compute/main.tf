@@ -41,17 +41,6 @@ resource "aws_iam_role_policy" "app" {
       {
         Effect = "Allow"
         Action = [
-          "s3:GetObject",
-          "s3:ListBucket"
-        ]
-        Resource = [
-          "arn:aws:s3:::${var.state_bucket}",
-          "arn:aws:s3:::${var.state_bucket}/*"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
           "ec2:DescribeInstances"
         ]
         Resource = "*"
