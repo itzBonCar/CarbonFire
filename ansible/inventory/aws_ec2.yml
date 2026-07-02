@@ -6,7 +6,7 @@ filters:
   instance-state-name: running
 keyed_groups:
   - key: tags.Role
-    prefix: role_
+    prefix: role
 hostnames:
   - private-ip-address
 compose:
