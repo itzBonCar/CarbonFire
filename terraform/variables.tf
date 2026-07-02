@@ -78,17 +78,17 @@ variable "app_instance_type" {
 
 variable "app_asg_min" {
   type    = number
-  default = 2
+  default = 1
 }
 
 variable "app_asg_max" {
   type    = number
-  default = 3
+  default = 2
 }
 
 variable "app_asg_desired" {
   type    = number
-  default = 2
+  default = 1
 }
 
 variable "app_host_port" {
@@ -103,7 +103,7 @@ variable "app_health_check_path" {
 
 variable "redis_instance_type" {
   type    = string
-  default = "t3.small"
+  default = "t3.micro"
 }
 
 variable "redis_port" {

@@ -10,7 +10,7 @@ redis_sentinel_conf_path: /etc/redis/sentinel.conf
 redis_sentinel_service_name: redis-sentinel
 redis_sentinel_port: 26379
 redis_master_name: mymaster
-redis_sentinel_quorum: 2
+redis_sentinel_quorum: 1
 redis_sentinel_down_after_milliseconds: 5000
 redis_sentinel_failover_timeout: 10000
 redis_sentinel_parallel_syncs: 1

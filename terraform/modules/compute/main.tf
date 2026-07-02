@@ -120,9 +120,9 @@ resource "aws_autoscaling_group" "app" {
   }
 }
 
-# Redis instances: 1 master + 2 replicas
+# Redis instances: 1 master + 1 replica
 resource "aws_instance" "redis" {
-  count                       = 3
+  count                       = 2
   ami                         = var.ubuntu_ami_id
   instance_type               = var.redis_instance_type
   key_name                    = var.key_name
