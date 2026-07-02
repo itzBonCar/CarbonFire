@@ -52,9 +52,21 @@ pipeline {
           sh '''
             set -eu
             for role in bastion redis app; do
-              aws ec2 wait instance-status-ok \
+              echo "Querying instance IDs for role: $role..."
+              IDS=$(aws ec2 describe-instances \
                 --region "${AWS_REGION}" \
-                --filters "Name=tag:Project,Values=carbonfire" "Name=tag:Role,Values=${role}" "Name=instance-state-name,Values=running"
+                --filters "Name=tag:Project,Values=carbonfire" "Name=tag:Role,Values=${role}" "Name=instance-state-name,Values=running" \
+                --query "Reservations[*].Instances[*].InstanceId" \
+                --output text)
+              
+              if [ -n "$IDS" ]; then
+                echo "Waiting for instance status OK for: $IDS"
+                aws ec2 wait instance-status-ok \
+                  --region "${AWS_REGION}" \
+                  --instance-ids $IDS
+              else
+                echo "No running instances found for role: $role"
+              fi
             done
           '''
         }
