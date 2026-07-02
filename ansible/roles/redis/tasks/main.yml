@@ -8,6 +8,20 @@
     name: "{{ redis_packages }}"
     state: present
 
+- name: Check if CarbonFire configuration flag exists
+  stat:
+    path: /etc/redis/.carbonfire_setup_v2
+  register: carbonfire_setup_flag
+
+- name: Stop redis and sentinel services before configuring
+  service:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - "{{ redis_service_name }}"
+    - "{{ redis_sentinel_service_name }}"
+  when: not carbonfire_setup_flag.stat.exists
+
 - name: Configure redis to listen on bind address
   lineinfile:
     path: "{{ redis_conf_path }}"
@@ -31,11 +45,6 @@
     line: "port {{ redis_port }}"
     backup: yes
   notify: Restart redis
-
-- name: Check if CarbonFire configuration flag exists
-  stat:
-    path: /etc/redis/.carbonfire_setup
-  register: carbonfire_setup_flag
 
 - name: Configure replicaof for non-master redis nodes
   lineinfile:
@@ -77,7 +86,7 @@
 
 - name: Create CarbonFire configuration flag file
   file:
-    path: /etc/redis/.carbonfire_setup
+    path: /etc/redis/.carbonfire_setup_v2
     state: touch
     owner: redis
     group: redis
