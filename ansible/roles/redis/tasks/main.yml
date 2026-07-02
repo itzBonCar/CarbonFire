@@ -32,10 +32,10 @@
     backup: yes
   notify: Restart redis
 
-- name: Check if sentinel configuration exists
+- name: Check if CarbonFire configuration flag exists
   stat:
-    path: "{{ redis_sentinel_conf_path }}"
-  register: sentinel_conf_stat
+    path: /etc/redis/.carbonfire_setup
+  register: carbonfire_setup_flag
 
 - name: Configure replicaof for non-master redis nodes
   lineinfile:
@@ -45,7 +45,7 @@
     backup: yes
   when:
     - not redis_is_master
-    - not sentinel_conf_stat.stat.exists
+    - not carbonfire_setup_flag.stat.exists
   notify: Restart redis
 
 - name: Remove replicaof line for master redis node
@@ -56,7 +56,7 @@
     backup: yes
   when:
     - redis_is_master
-    - not sentinel_conf_stat.stat.exists
+    - not carbonfire_setup_flag.stat.exists
   notify: Restart redis
 
 - name: Create sentinel config directory
@@ -72,8 +72,17 @@
     owner: redis
     group: redis
     mode: '0640'
-  when: not sentinel_conf_stat.stat.exists
+  when: not carbonfire_setup_flag.stat.exists
   notify: Restart redis sentinel
+
+- name: Create CarbonFire configuration flag file
+  file:
+    path: /etc/redis/.carbonfire_setup
+    state: touch
+    owner: redis
+    group: redis
+    mode: '0644'
+  when: not carbonfire_setup_flag.stat.exists
 
 - name: Start redis service
   service:
