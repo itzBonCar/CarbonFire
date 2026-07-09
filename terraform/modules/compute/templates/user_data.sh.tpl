@@ -7,8 +7,30 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/null) 2>&1
 echo "Starting User Data script..."
 
 export DEBIAN_FRONTEND=noninteractive
+# Force apt to use ipv4 cuz no internet for ipv6 to instances
+echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
+
+# Install docker 
 apt-get update -y
-apt-get install -y docker.io unzip awscli
+apt-get install -y ca-certificates curl unzip
+
+install -m 0755 -d /etc/apt/keyrings
+curl -4fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+apt-get update -y
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Install awscli
+curl -4 "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+./aws/install
+rm -rf awscliv2.zip ./aws
 
 systemctl start docker
 systemctl enable docker
