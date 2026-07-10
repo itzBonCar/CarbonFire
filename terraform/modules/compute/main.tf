@@ -131,8 +131,8 @@ resource "aws_instance" "redis" {
   associate_public_ip_address = false
 
   tags = merge(var.common_tags, {
-    Name = "${var.project_name}-redis-${count.index + 1}"
-    Role = "redis"
+    Name      = "${var.project_name}-redis-${count.index + 1}"
+    Role      = "redis"
     RedisRole = count.index == 0 ? "master" : "replica"
   })
 }
