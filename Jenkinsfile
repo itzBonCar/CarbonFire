@@ -17,6 +17,15 @@ pipeline {
     stage('Checkout') {
       steps { checkout scm }
     }
+    stage('Terraform Lint & Validate') {
+      steps {
+        dir("${TF_DIR}") {
+          sh 'terraform init -backend=false'
+          sh 'terraform fmt -check'
+          sh 'terraform validate'
+        }
+      }
+    }
     stage('Bootstrap backend') {
       steps {
         withAWS(credentials: 'canberry-aws', region: "${AWS_REGION}") {
@@ -42,6 +51,12 @@ pipeline {
           dir("${TF_DIR}") {
             sh 'terraform init -reconfigure'
             sh 'terraform apply -auto-approve'
+            script {
+              env.ALB_DNS = sh(script: 'terraform output -raw alb_dns', returnStdout: true).trim()
+              env.BASTION_PUBLIC_IP = sh(script: 'terraform output -raw bastion_public_ip', returnStdout: true).trim()
+              env.APP_ASG = sh(script: 'terraform output -raw app_asg', returnStdout: true).trim()
+              env.TF_STATE_BUCKET = sh(script: 'terraform output -raw terraform_state_bucket', returnStdout: true).trim()
+            }
           }
         }
       }
@@ -93,6 +108,32 @@ pipeline {
     }
   }
   post {
+    success {
+      slackSend(
+        channel: '#build-status',
+        tokenCredentialId: 'new-app-slack-token',
+        teamDomain: 'supercarbonworkspace',
+        color: '#00FF00',
+        message: """*Pipeline Success!* :white_check_mark:
+*Job*: ${env.JOB_NAME} [${env.BUILD_NUMBER}]
+*ALB DNS URL*: http://${env.ALB_DNS}
+*Bastion Public IP*: ${env.BASTION_PUBLIC_IP}
+*App ASG Name*: ${env.APP_ASG}
+*Terraform State Bucket*: ${env.TF_STATE_BUCKET}
+*Console Link*: ${env.BUILD_URL}"""
+      )
+    }
+    failure {
+      slackSend(
+        channel: '#build-status',
+        tokenCredentialId: 'new-app-slack-token',
+        teamDomain: 'supercarbonworkspace',
+        color: '#FF0000',
+        message: """*Pipeline Failed!* :x:
+*Job*: ${env.JOB_NAME} [${env.BUILD_NUMBER}]
+*Console Link*: ${env.BUILD_URL}"""
+      )
+    }
     always {
       echo 'Pipeline finished'
     }
