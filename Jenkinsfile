@@ -19,10 +19,12 @@ pipeline {
     }
     stage('Terraform Lint & Validate') {
       steps {
-        dir("${TF_DIR}") {
-          sh 'terraform init -backend=false'
-          sh 'terraform fmt -check'
-          sh 'terraform validate'
+        withAWS(credentials: 'canberry-aws', region: "${AWS_REGION}") {
+          dir("${TF_DIR}") {
+            sh 'terraform init -backend=false'
+            sh 'terraform fmt -check'
+            sh 'terraform validate'
+          }
         }
       }
     }
