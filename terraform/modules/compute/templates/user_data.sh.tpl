@@ -10,8 +10,27 @@ export DEBIAN_FRONTEND=noninteractive
 # Force apt to use ipv4 cuz no internet for ipv6 to instances
 echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4
 
+# Wait for internet connectivity before running apt updates
+echo "Waiting for internet connectivity..."
+for i in {1..30}; do
+  if curl -s --connect-timeout 3 http://www.google.com > /dev/null; then
+    echo "Internet connectivity is up!"
+    break
+  fi
+  echo "Waiting for network (attempt $i)..."
+  sleep 5
+done
+
 # Install docker 
-apt-get update -y
+echo "Updating apt repositories..."
+for i in {1..5}; do
+  if apt-get update -y; then
+    break
+  fi
+  echo "apt-get update failed, retrying in 5 seconds..."
+  sleep 5
+done
+
 apt-get install -y ca-certificates curl unzip
 
 install -m 0755 -d /etc/apt/keyrings
