@@ -94,7 +94,7 @@ pipeline {
         withAWS(credentials: 'canberry-aws', region: "${AWS_REGION}") {
           withCredentials([sshUserPrivateKey(credentialsId: 'canbor-ssh-key', keyFileVariable: 'ANSIBLE_KEY')]) {
             dir("${ANSIBLE_DIR}") {
-              sh 'ansible-galaxy collection install amazon.aws community.docker || true'
+              sh 'ansible-galaxy collection install amazon.aws || true'
               sh '''
                 set -eu
                 BASTION_PUBLIC_IP="$(terraform -chdir="../${TF_DIR}" output -raw bastion_public_ip)"
